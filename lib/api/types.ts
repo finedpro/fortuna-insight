@@ -98,6 +98,34 @@ export interface WalletValidationResult {
   warnings: { code: string; message: string }[];
 }
 
+export interface WalletSnapshotToken {
+  mint: string;
+  symbol: string | null;
+  name: string | null;
+  formatted: string;
+  raw: string;
+  decimals: number;
+}
+
+export interface WalletSnapshotTransaction {
+  signature: string;
+  timestamp: string | null;
+  slot: number | null;
+  status: "success" | "failed" | "unknown";
+}
+
+/** Optional: absent on analyses stored before this field existed. */
+export interface WalletSnapshot {
+  native: { symbol: string | null; formatted: string; raw: string; decimals: number } | null;
+  tokens: WalletSnapshotToken[];
+  tokensTotal: number;
+  /** Zero-balance token accounts left out of `tokens`. Absent on older stored analyses. */
+  emptyTokenAccounts?: number;
+  recentTransactions: WalletSnapshotTransaction[];
+  transactionCount: number;
+  transactionCountIsExhaustive: boolean;
+}
+
 export interface AnalysisResultMetadata {
   startedAt: string;
   completedAt: string;
@@ -112,6 +140,7 @@ export interface AnalysisResult {
   healthResult: WalletHealthResult | null;
   evidenceCollection: EvidenceCollection | null;
   report: FormattedAiReport | null;
+  walletSnapshot?: WalletSnapshot;
   metadata: AnalysisResultMetadata;
 }
 

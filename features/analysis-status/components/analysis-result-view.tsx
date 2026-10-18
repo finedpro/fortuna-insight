@@ -4,6 +4,8 @@ import { MetricCard } from "@/components/ui/metric-card";
 import { Grid } from "@/components/ui/grid";
 import { WalletHealthCard } from "./wallet-health-card";
 import { EvidenceCard } from "./evidence-card";
+import { TokenHoldingsCard } from "./token-holdings-card";
+import { RecentTransactionsCard } from "./recent-transactions-card";
 import { AiReportCard } from "./ai-report-card";
 import type { AnalysisCompletedData } from "@/lib/api/types";
 
@@ -42,6 +44,10 @@ export function AnalysisResultView({ data }: AnalysisResultViewProps) {
       </Grid>
 
       {result.healthResult && <WalletHealthCard health={result.healthResult} />}
+      {result.walletSnapshot && <TokenHoldingsCard snapshot={result.walletSnapshot} />}
+      {result.walletSnapshot && (
+        <RecentTransactionsCard snapshot={result.walletSnapshot} network={result.network} />
+      )}
       {result.evidenceCollection && <EvidenceCard evidence={result.evidenceCollection} />}
       {result.report && <AiReportCard report={result.report} />}
     </div>
