@@ -1,8 +1,12 @@
+"use client";
+
 import { DashboardCard } from "@/components/ui/dashboard-card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { typography } from "@/lib/design-system";
 import { shortenMint } from "./token-holdings-card";
+import { usePreferences } from "@/features/settings/hooks/use-preferences";
+import type { TimeDisplay } from "@/lib/preferences";
 import type { NetworkId, WalletSnapshot, WalletSnapshotTransaction } from "@/lib/api/types";
 
 const STATUS_LABEL: Record<WalletSnapshotTransaction["status"], string> = {
@@ -11,10 +15,15 @@ const STATUS_LABEL: Record<WalletSnapshotTransaction["status"], string> = {
   unknown: "unknown",
 };
 
-function formatTimestamp(timestamp: string | null): string {
+const pad = (value: number) => String(value).padStart(2, "0");
+
+export function formatTimestamp(timestamp: string | null, mode: TimeDisplay = "utc"): string {
   if (!timestamp) return "Time unknown";
   const date = new Date(timestamp);
   if (Number.isNaN(date.getTime())) return "Time unknown";
+  if (mode === "local") {
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())} local`;
+  }
   return `${date.toISOString().slice(0, 16).replace("T", " ")} UTC`;
 }
 
@@ -26,6 +35,7 @@ export interface RecentTransactionsCardProps {
 /** Lists the newest transactions the backend collected. Only Solana signatures link out to an explorer. */
 export function RecentTransactionsCard({ snapshot, network }: RecentTransactionsCardProps) {
   const { recentTransactions, transactionCount, transactionCountIsExhaustive } = snapshot;
+  const { preferences } = usePreferences();
 
   return (
     <DashboardCard
@@ -65,7 +75,7 @@ export function RecentTransactionsCard({ snapshot, network }: RecentTransactions
                   </span>
                 )}
                 <span className={cn(typography.caption.className, "text-muted-foreground")}>
-                  {formatTimestamp(tx.timestamp)}
+                  {formatTimestamp(tx.timestamp, preferences.timeDisplay)}
                 </span>
               </div>
               <Badge variant={tx.status === "failed" ? "gold" : "outline"}>{STATUS_LABEL[tx.status]}</Badge>

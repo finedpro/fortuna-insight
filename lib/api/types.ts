@@ -114,6 +114,23 @@ export interface WalletSnapshotTransaction {
   status: "success" | "failed" | "unknown";
 }
 
+export interface WalletSnapshotStakeAccount {
+  stakeAccount: string;
+  validator: string | null;
+  formatted: string;
+  raw: string;
+  status: "activating" | "active" | "deactivating" | "inactive";
+}
+
+export interface WalletSnapshotStaking {
+  /** False when native stake accounts could not be checked - never read that as "no staking". */
+  nativeChecked: boolean;
+  native: WalletSnapshotStakeAccount[];
+  nativeTotal: number;
+  nativeStakedFormatted: string | null;
+  liquid: WalletSnapshotToken[];
+}
+
 /** Optional: absent on analyses stored before this field existed. */
 export interface WalletSnapshot {
   native: { symbol: string | null; formatted: string; raw: string; decimals: number } | null;
@@ -121,6 +138,8 @@ export interface WalletSnapshot {
   tokensTotal: number;
   /** Zero-balance token accounts left out of `tokens`. Absent on older stored analyses. */
   emptyTokenAccounts?: number;
+  /** Absent on analyses stored before staking was added. */
+  staking?: WalletSnapshotStaking;
   recentTransactions: WalletSnapshotTransaction[];
   transactionCount: number;
   transactionCountIsExhaustive: boolean;

@@ -1,8 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { TokenHoldingsCard } from "../token-holdings-card";
 import { RecentTransactionsCard } from "../recent-transactions-card";
 import type { WalletSnapshot } from "@/lib/api/types";
+
+beforeEach(() => {
+  localStorage.clear();
+});
 
 const MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 
@@ -78,4 +82,38 @@ describe("RecentTransactionsCard", () => {
     rerender(<RecentTransactionsCard snapshot={snapshot({ recentTransactions: [], transactionCount: 0 })} network="solana" />);
     expect(screen.getByText(/No transactions found/)).toBeInTheDocument();
   });
+
+describe("display preferences in the report cards", () => {
+  it("hides unnamed tokens when the preference is on and says how many are hidden", () => {
+    localStorage.setItem("fortuna-preferences", JSON.stringify({ timeDisplay: "utc", hideUnnamedTokens: true }));
+    render(<TokenHoldingsCard snapshot={snapshot()} />);
+    expect(screen.getByText("USDC")).toBeInTheDocument();
+    expect(screen.queryByText("Unknown token")).toBeNull();
+    expect(screen.getByText(/1 unnamed token hidden/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Settings" })).toHaveAttribute("href", "/settings");
+  });
+
+  it("does not claim the wallet has no tokens when all of them are hidden", () => {
+    localStorage.setItem("fortuna-preferences", JSON.stringify({ hideUnnamedTokens: true }));
+    const unnamedOnly = snapshot({ tokens: [snapshot().tokens[1]], tokensTotal: 1 });
+    render(<TokenHoldingsCard snapshot={unnamedOnly} />);
+    expect(screen.queryByText(/No token balances found/)).toBeNull();
+    expect(screen.getByText(/1 unnamed token hidden/)).toBeInTheDocument();
+  });
+
+  it("shows transaction times in local time when chosen", () => {
+    localStorage.setItem("fortuna-preferences", JSON.stringify({ timeDisplay: "local" }));
+    render(<RecentTransactionsCard snapshot={snapshot()} network="solana" />);
+    const d = new Date("2026-01-02T03:04:05.000Z");
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const expected = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())} local`;
+    expect(screen.getByText(expected)).toBeInTheDocument();
+  });
+
+  it("falls back to defaults for corrupt stored preferences", () => {
+    localStorage.setItem("fortuna-preferences", "{not json");
+    render(<RecentTransactionsCard snapshot={snapshot()} network="solana" />);
+    expect(screen.getByText("2026-01-02 03:04 UTC")).toBeInTheDocument();
+  });
+});
 });

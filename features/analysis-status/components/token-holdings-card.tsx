@@ -1,7 +1,12 @@
+"use client";
+
+import Link from "next/link";
 import { DashboardCard } from "@/components/ui/dashboard-card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { typography } from "@/lib/design-system";
+import { usePreferences } from "@/features/settings/hooks/use-preferences";
+import { ROUTES } from "@/lib/constants/routes";
 import type { WalletSnapshot } from "@/lib/api/types";
 
 export function shortenMint(mint: string): string {
@@ -14,8 +19,13 @@ export interface TokenHoldingsCardProps {
 
 /** Shows exactly what the backend snapshot contains: native balance and token holdings. Unknown tokens show their shortened mint address, never a guessed name. No prices or values. */
 export function TokenHoldingsCard({ snapshot }: TokenHoldingsCardProps) {
-  const { native, tokens, tokensTotal } = snapshot;
-  const hidden = tokensTotal - tokens.length;
+  const { native, tokensTotal } = snapshot;
+  const { preferences } = usePreferences();
+  const tokens = preferences.hideUnnamedTokens
+    ? snapshot.tokens.filter((token) => token.symbol !== null)
+    : snapshot.tokens;
+  const hiddenUnnamed = snapshot.tokens.length - tokens.length;
+  const hidden = tokensTotal - snapshot.tokens.length;
   const empty = snapshot.emptyTokenAccounts ?? 0;
   const hasNames = tokens.some((token) => token.symbol !== null);
 
@@ -28,11 +38,11 @@ export function TokenHoldingsCard({ snapshot }: TokenHoldingsCardProps) {
         </div>
       )}
 
-      {tokens.length === 0 ? (
+      {snapshot.tokens.length === 0 ? (
         <p className={cn(typography.caption.className, "text-muted-foreground")}>
           No token balances found in this wallet.
         </p>
-      ) : (
+      ) : tokens.length === 0 ? null : (
         <ul className="flex flex-col">
           {tokens.map((token) => (
             <li
@@ -69,9 +79,19 @@ export function TokenHoldingsCard({ snapshot }: TokenHoldingsCardProps) {
         </p>
       )}
 
+      {hiddenUnnamed > 0 && (
+        <p className={cn(typography.caption.className, "text-muted-foreground")}>
+          {hiddenUnnamed} unnamed {hiddenUnnamed === 1 ? "token" : "tokens"} hidden. Change this in{" "}
+          <Link href={ROUTES.settings} className="underline underline-offset-2">
+            Settings
+          </Link>
+          .
+        </p>
+      )}
+
       {hidden > 0 && (
         <p className={cn(typography.caption.className, "text-muted-foreground")}>
-          Showing {tokens.length} of {tokensTotal} tokens.
+          Showing {snapshot.tokens.length} of {tokensTotal} tokens.
         </p>
       )}
     </DashboardCard>

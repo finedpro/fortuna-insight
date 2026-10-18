@@ -1,6 +1,6 @@
 import { PageLayout } from "@/components/layout/page-layout";
 import { Section } from "@/components/common/section";
-import { PlaceholderPanel } from "@/components/common/placeholder-panel";
+import { SettingsView } from "@/features/settings/components/settings-view";
 
 export default function SettingsPage() {
   return (
@@ -8,10 +8,10 @@ export default function SettingsPage() {
       <Section
         eyebrow="Configuration"
         title="Settings"
-        description="Account, wallet connections and preferences will be managed here."
+        description="Display preferences for this browser, and what Fortuna stores."
         className="gap-6"
       >
-        <PlaceholderPanel label="Settings coming soon" />
+        <SettingsView />
       </Section>
     </PageLayout>
   );
