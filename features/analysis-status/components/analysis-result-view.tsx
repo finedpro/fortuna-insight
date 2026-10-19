@@ -5,6 +5,7 @@ import { Grid } from "@/components/ui/grid";
 import { WalletHealthCard } from "./wallet-health-card";
 import { EvidenceCard } from "./evidence-card";
 import { TokenHoldingsCard } from "./token-holdings-card";
+import { ShareReportActions } from "./share-report-actions";
 import { StakingCard } from "./staking-card";
 import { RecentTransactionsCard } from "./recent-transactions-card";
 import { AiReportCard } from "./ai-report-card";
@@ -43,6 +44,8 @@ export function AnalysisResultView({ data }: AnalysisResultViewProps) {
         <MetricCard label="Wallet Address" value={result.walletAddress} />
         <MetricCard label="Network" value={result.network} />
       </Grid>
+
+      <ShareReportActions healthScore={result.healthResult ? Math.round(result.healthResult.healthScore) : null} />
 
       {result.healthResult && <WalletHealthCard health={result.healthResult} />}
       {result.walletSnapshot && <TokenHoldingsCard snapshot={result.walletSnapshot} />}
